@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chatter Box – Mangrove Forest Bot</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <!-- Markdown rendering library -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- Code highlighting library -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+</head>
+<body>
+  <!-- Animated Background Waves -->
+  <div class="wave wave1"></div>
+  <div class="wave wave2"></div>
+  <div class="wave wave3"></div>
+  
+  <!-- Layered Forest Silhouettes -->
+  <div class="forest-layer forest-layer-back"></div>
+  <div class="forest-layer forest-layer-mid"></div>
+  <div class="forest-layer forest-layer-front"></div>
+
+  <!-- Floating Geometric Shapes -->
+  <div class="shape shape1"></div>
+  <div class="shape shape2"></div>
+  <div class="shape shape3"></div>
+  <div class="shape shape4"></div>
+  
+  <div class="app-shell">
+    <!-- Sidebar with Quick Questions -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h2>🌿 Mangrove Hub</h2>
+        <p>Quick Questions</p>
+      </div>
+
+      <div>
+        <span class="quick-label">Ecosystem Questions</span>
+        <div class="questions-grid">
+          <button class="quick-btn" onclick="askQuestion('What are mangrove forests?')">📚 What are mangrove forests?</button>
+          <button class="quick-btn" onclick="askQuestion('What is the structure of a mangrove forest?')">🌳 Structure & Anatomy</button>
+          <button class="quick-btn" onclick="askQuestion('How do mangroves adapt to salt water?')">💧 Salt Water Adaptation</button>
+        </div>
+
+        <span class="quick-label">Environmental Benefits</span>
+        <div class="questions-grid">
+          <button class="quick-btn" onclick="askQuestion('How do mangroves help the environment?')">🌍 Environmental Benefits</button>
+          <button class="quick-btn" onclick="askQuestion('How do mangroves protect coastal areas?')">🌊 Coastal Protection</button>
+          <button class="quick-btn" onclick="askQuestion('What wildlife lives in mangrove forests?')">🦅 Wildlife & Biodiversity</button>
+        </div>
+
+        <span class="quick-label">Geography & Conservation</span>
+        <div class="questions-grid">
+          <button class="quick-btn" onclick="askQuestion('Where are mangrove forests found in the world?')">🗺️ Geographic Distribution</button>
+          <button class="quick-btn" onclick="askQuestion('Why are mangroves endangered?')">⚠️ Conservation Issues</button>
+          <button class="quick-btn" onclick="askQuestion('How can we protect and restore mangrove forests?')">♻️ Conservation Efforts</button>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <p>💡 Click any question to explore mangrove forests!</p>
+      </div>
+    </aside>
+
+    <!-- Main Chat Area -->
+    <div class="chat-container">
+      <header class="header">
+        <div class="header-text">
+          <h1>🌿 Chatter Box</h1>
+          <p class="subtitle">Your Mangrove Forest AI Assistant</p>
+        </div>
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sample questions" onclick="toggleSidebar()">
+          <span>Sample Questions</span>
+        </button>
+      </header>
+
+      <div class="chat-wrapper">
+        <!-- Chat Box -->
+        <div id="chat-box" class="chat-box" aria-live="polite">
+          <div class="welcome-message">
+            <h2>Welcome to Chatter Box! 🌿</h2>
+            <p>Ask me anything about <strong>Mangrove Forests</strong></p>
+            <p>Click a quick question on the left or type your own question below</p>
+          </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loading" class="loading" style="display: none;">
+          <span class="spinner"></span> <span>Exploring mangrove forests...</span>
+        </div>
+      </div>
+
+      <!-- Input Section -->
+      <div class="input-container">
+        <input 
+          type="text" 
+          id="user-input" 
+          placeholder="Ask about mangrove forests..." 
+          onkeypress="handleKeyPress(event)"
+          autocomplete="off"
+        />
+        <button id="send-btn" onclick="sendMessage()">
+          <span class="send-icon">➤</span> Send
+        </button>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <button class="toolbar-btn" onclick="exportChat()" title="Download chat as text file">
+          <span>📥</span> Export Chat
+        </button>
+        <button class="toolbar-btn" onclick="showStats()" title="View chat statistics">
+          <span>📊</span> Statistics
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()" aria-hidden="true"></div>
+
+  <script>
+    // Configure marked options for better markdown rendering
+    marked.setOptions({
+      breaks: true,
+      gfm: true,
+      pedantic: false
+    });
+
+    // Function to parse and render markdown
+    function parseMarkdown(text) {
+      return marked.parse(text);
+    }
+
+    // Function to handle sending messages
+    function sendMessage() {
+      const question = document.getElementById("user-input").value.trim();
+      if (!question) return;
+      askQuestion(question);
+    }
+
+    // Function to ask a question
+    async function askQuestion(question) {
+      if (!question) return;
+
+      const chatBox = document.getElementById("chat-box");
+      const loadingIndicator = document.getElementById("loading");
+      const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+      const userInput = document.getElementById("user-input");
+
+      closeSidebar();
+
+      // Remove welcome message if it exists
+      const welcomeMsg = chatBox.querySelector('.welcome-message');
+      if (welcomeMsg) {
+        welcomeMsg.remove();
+      }
+
+      // Add user message
+      const userMessage = document.createElement("div");
+      userMessage.className = "message user-message";
+      userMessage.innerHTML = `<div class="message-content"><strong>You:</strong> ${escapeHtml(question)}</div>`;
+      chatBox.appendChild(userMessage);
+
+      // Clear input
+      userInput.value = "";
+      userInput.focus();
+
+      // Show loading indicator
+      loadingIndicator.style.display = "flex";
+
+      try {
+        const res = await fetch("/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: question })
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        const data = await res.json();
+
+        // Hide loading indicator
+        loadingIndicator.style.display = "none";
+
+        // Add bot message with markdown rendering
+        const botMessage = document.createElement("div");
+        botMessage.className = "message bot-message";
+        const renderedMarkdown = parseMarkdown(data.answer);
+        botMessage.innerHTML = `<div class="message-content"><strong>🤖 Bot:</strong><div class="markdown-content">${renderedMarkdown}</div><div class="message-actions"><button class="copy-btn" onclick="copyToClipboard(this, '${escapeHtml(data.answer)}')">📋 Copy</button></div></div>`;
+        chatBox.appendChild(botMessage);
+
+        // Highlight code blocks if any
+        botMessage.querySelectorAll('pre code').forEach((block) => {
+          hljs.highlightElement(block);
+        });
+
+        // Add follow-up suggestions if available
+        if (data.suggestions && data.suggestions.length > 0) {
+          const suggestionsDiv = document.createElement("div");
+          suggestionsDiv.className = "message suggestions-message";
+          let suggestionsHTML = '<div class="message-content"><strong>💡 Follow-up Questions:</strong><div class="suggestions-list">';
+          data.suggestions.forEach(suggestion => {
+            suggestionsHTML += `<button class="suggestion-btn" onclick="askQuestion('${escapeHtml(suggestion)}')">${escapeHtml(suggestion)}</button>`;
+          });
+          suggestionsHTML += '</div></div>';
+          suggestionsDiv.innerHTML = suggestionsHTML;
+          chatBox.appendChild(suggestionsDiv);
+        }
+
+        // Auto scroll to bottom
+        chatBox.scrollTop = chatBox.scrollHeight;
+      } catch (error) {
+        loadingIndicator.style.display = "none";
+        const errorMessage = document.createElement("div");
+        errorMessage.className = "message error-message";
+        errorMessage.innerHTML = `<div class="message-content"><strong>❌ Error:</strong> ${escapeHtml(error.message)}</div>`;
+        chatBox.appendChild(errorMessage);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+    }
+
+    // Copy to clipboard function
+    function copyToClipboard(button, text) {
+      navigator.clipboard.writeText(text).then(() => {
+        const originalText = button.innerText;
+        button.innerText = '✅ Copied!';
+        setTimeout(() => {
+          button.innerText = originalText;
+        }, 2000);
+      }).catch(err => {
+        console.error('Failed to copy:', err);
+        alert('Failed to copy to clipboard');
+      });
+    }
+
+    // Export chat as text file
+    async function exportChat() {
+      try {
+        const response = await fetch('/export');
+        if (!response.ok) throw new Error('Export failed');
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = response.headers.get('content-disposition').split('filename=')[1].replace(/"/g, '');
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } catch (error) {
+        alert('Failed to export chat: ' + error.message);
+      }
+    }
+
+    // Get and display statistics
+    async function showStats() {
+      try {
+        const res = await fetch('/stats');
+        const data = await res.json();
+        alert(`📊 Chat Statistics\n\nTotal Questions Asked: ${data.total_questions}\nTotal Conversations: ${data.total_conversations}`);
+      } catch (error) {
+        alert('Failed to load statistics');
+      }
+    }
+
+    // Handle Enter key press
+    function handleKeyPress(event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        sendMessage();
+      }
+    }
+
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+      const map = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      };
+      return text.replace(/[&<>"']/g, (m) => map[m]);
+    }
+
+    // Focus on input on load
+    window.addEventListener("load", () => {
+      document.getElementById("user-input").focus();
+    });
+
+    function toggleSidebar() {
+      const body = document.body;
+      const backdrop = document.getElementById("sidebarBackdrop");
+      body.classList.toggle("sidebar-open");
+      backdrop.classList.toggle("visible");
+    }
+
+    function closeSidebar() {
+      const body = document.body;
+      const backdrop = document.getElementById("sidebarBackdrop");
+      body.classList.remove("sidebar-open");
+      backdrop.classList.remove("visible");
+    }
+
+    window.addEventListener("resize", () => {
+      if (window.innerWidth > 960) {
+        closeSidebar();
+      }
+    });
+  </script>
+</body>
+</html>
