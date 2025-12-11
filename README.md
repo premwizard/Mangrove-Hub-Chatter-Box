@@ -148,8 +148,6 @@ Edit `app.py` to customize:
 - **Backend**: Flask (Python web framework)
 - **Frontend**: HTML5, CSS3, JavaScript
 - **AI**: Google Generative AI (Gemini)
-- **Markdown**: Marked.js library
-- **Syntax Highlighting**: Highlight.js
 
 ## 📱 Responsive Breakpoints
 
